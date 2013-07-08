@@ -199,6 +199,25 @@ class YiiConditionalValidator extends CValidator
     }
 
 
+    /**
+        Partial support for clientside conditional validation
+        Due to encapsulation, we can't get JS info regarding other parts of the form - validation is done per field basis.
+        To get this to work, you need to provide javascript condition to perform before field validation.
+
+        rules = array(
+            array('field1, field2', 'ext.YiiConditionalValidator',
+                'if' => array(
+                    array('field', 'compare', 'compareValue' => 1)
+                ),
+                'ifJS' => "$('#FormID_field').is(':checked')",
+                'then' => array(
+                    array('field1, field2', 'required')
+                )
+        )
+
+
+
+    */
   public function clientValidateAttribute($object, $pattribute){
 
     $validatorsData = $this->prepareValidatorsData($object, $this->then);
