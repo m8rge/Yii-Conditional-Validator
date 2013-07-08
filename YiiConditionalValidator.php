@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Validates multiple attributes using any Yii Core Validator
- * depending on some another attribute's condition (validation) is true;
+ * YiiConditionalValidator
+ * If-then validation rules on Yii Framework using core validators.
  *
  * Example of rule in a hipothetic invoice checking if id_payment_method is Money
  * or Card, if so, then dueDate is required *and* must be numerical:
@@ -27,6 +27,10 @@ class YiiConditionalValidator extends CValidator
 
     public $if = array();
     public $then = array();
+    public $ifJS = '';
+
+    private $jsCondition;
+
 
     public function __construct()
     {
@@ -193,6 +197,40 @@ class YiiConditionalValidator extends CValidator
         }
         return true;
     }
+
+
+  public function clientValidateAttribute($object, $pattribute){
+
+    $validatorsData = $this->prepareValidatorsData($object, $this->then);
+
+    // global JS kill switch for conditional validation
+    $retJS = 'if('. $this->ifJS .') {';
+    $js = '';
+
+    foreach($validatorsData as $preparedData ){
+      $validation = $preparedData['validation'];
+      $object     = $preparedData['object'];
+      $attribute  = $preparedData['attribute'];
+      $params     = $preparedData['params'];
+
+      if( strpos($attribute, $pattribute) !== FALSE){
+
+        $validator = CValidator::createValidator($validation, $object, $pattribute, $params);
+        $js .= $validator->clientValidateAttribute($object, $pattribute);
+
+      }
+
+
+    }
+
+    $retJS .= $js;
+
+    $retJS .= '}';
+
+    return $retJS;
+
+
+  }
 
 }
 
