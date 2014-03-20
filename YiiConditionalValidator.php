@@ -24,7 +24,7 @@
  * @author Sidney Lins <solucoes@wmaior.com>
  * @author Andrey Putilov <to.merge@gmail.com>
  * @copyright Copyright &copy; 2011 Sidney Lins
- * @version 0.9.0
+ * @version 1.1.0
  * @license New BSD Licence
  */
 class YiiConditionalValidator extends CValidator
