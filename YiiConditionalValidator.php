@@ -1,5 +1,4 @@
 <?php
-/** @noinspection PhpUndefinedClassInspection */
 
 /**
  * YiiConditionalValidator
@@ -7,10 +6,9 @@
  *
  * Example:
  * <code>
- * // Whole If and Then branches must be present in file only once, so
- * // Not allowed multiple attributes
+ * // Root attributes must repeat 'then' closure
  * // here ↓
- * array('type', 'ext.validators.YiiConditionalValidator',
+ * array('phone, name', 'ext.validators.YiiConditionalValidator',
  *      'if' => array(
  *          array('type', 'compare', 'compareValue' => 1),
  *      ),
@@ -24,7 +22,7 @@
  * @author Sidney Lins <solucoes@wmaior.com>
  * @author Andrey Putilov <to.merge@gmail.com>
  * @copyright Copyright &copy; 2011 Sidney Lins
- * @version 1.1.0
+ * @version 1.2.0
  * @license New BSD Licence
  */
 class YiiConditionalValidator extends CValidator
@@ -114,39 +112,39 @@ class YiiConditionalValidator extends CValidator
 
     public function clientValidateAttribute($object, $attribute)
     {
-        $ifValidators = $this->createValidators($object, $this->if);
-        $ifJs = '';
+        static $ifJs;
+        if (is_null($ifJs)) {
+            $ifValidators = $this->createValidators($object, $this->if);
+            $ifJs = '';
+
+            foreach ($ifValidators as $validator) {
+                foreach ($validator->attributes as $ifAttribute) {
+                    $js = $validator->clientValidateAttribute($object, $ifAttribute);
+
+                    if (!preg_match('/if\s*?\((.+)\)\s*?\{/s', $js, $matches)) {
+                        throw new CException(
+                            'Error in YiiConditionalValidator: can\'t extract js condition for "if" validator'
+                        );
+                    }
+                    $if = $matches[1];
+                    $if = preg_replace(
+                        '/\bvalue\b/',
+                        'jQuery("#' . CHtml::activeId($object, $ifAttribute) . '").val()',
+                        $if
+                    );
+                    $ifJs .= $if;
+                }
+            }
+        }
         $thenValidators = $this->createValidators($object, $this->then);
         $thenJs = '';
 
-        foreach ($ifValidators as $validator) {
-            foreach ($validator->attributes as $ifAttribute) {
-                $js = $validator->clientValidateAttribute($object, $ifAttribute);
-
-                if (!preg_match('/if\s*?\((.+)\)\s*?\{/s', $js, $matches)) {
-                    throw new CException(
-                        'Error in YiiConditionalValidator: can\'t extract js condition for "if" validator'
-                    );
-                }
-                $if = $matches[1];
-                $if = preg_replace(
-                    '/\bvalue\b/',
-                    'jQuery("#' . CHtml::activeId($object, $ifAttribute) . '").val()',
-                    $if
-                );
-                $ifJs .= $if;
-            }
-        }
-
         foreach ($thenValidators as $validator) {
             foreach ($validator->attributes as $thenAttribute) {
-                $then = $validator->clientValidateAttribute($object, $thenAttribute);
-                $then = preg_replace(
-                    '/\bvalue\b/',
-                    'jQuery("#' . CHtml::activeId($object, $thenAttribute) . '").val()',
-                    $then
-                );
-                $thenJs .= $then;
+                if ($thenAttribute == $attribute) {
+                    $thenJs = $validator->clientValidateAttribute($object, $thenAttribute);
+                    break;
+                }
             }
         }
 
