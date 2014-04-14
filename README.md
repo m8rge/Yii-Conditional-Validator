@@ -7,7 +7,7 @@ Basically, YCV executes the rules set in the param `if` and if there are no erro
 ## Syntax
 
 ```php
-array('attribute', 'path.to.YiiConditionalValidator',
+array('attrZ, attrG', 'path.to.YiiConditionalValidator',
     'if' => array(
         //rule1: array('attrX, attrY', 'required', ...)
         //ruleN: ...
@@ -19,7 +19,7 @@ array('attribute', 'path.to.YiiConditionalValidator',
 )
 ```
 
-- `attribute`: The name of the attributes that should be turned safe (since Yii has no way to make dinamic validators to turn attributes safe);
+- `attribute`: The name of the attributes from `then` attribute (see lower);
 - `path.to.YiiConditionalValidator`: In the most of cases will be `ext.YiiConditionalValidator`;
 - `if`: (bidimensional array) The conditional rules to be validated. *Only* if they are all valid (i.e., have no errors) then the rules in `then` will be validated;
 - `then`: (bidimensional array) The rules that will be validated *only* if there are no errors in rules of `if` param;
@@ -35,7 +35,7 @@ Errors in the rules set in the param `if` are discarded after checking. Only err
 public function rules()
 {
     return array(
-        array('customer_type', 'ext.YiiConditionalValidator',
+        array('birthdate, city', 'ext.YiiConditionalValidator',
             'if' => array(
                 array('customer_type', 'compare', 'compareValue'=>"active"),
             ),
@@ -52,7 +52,7 @@ public function rules()
 public function rules()
 {
     return array(
-        array('customer_type', 'ext.YiiConditionalValidator',
+        array('birthdate, city', 'ext.YiiConditionalValidator',
             'if' => array(
                 array('customer_type', 'compare', 'compareValue'=>"active"),
             ),
@@ -94,6 +94,9 @@ public function rules()
 - [Fast Validators Reference](http://www.yiiframework.com/wiki/56/reference-model-rules-validation/)
 
 ## Change Log
+[Version 1.2.0]
+- Improved clientside validation
+
 [Version 1.1.0]
 - Remove dot notation support.
 - Add client validation
