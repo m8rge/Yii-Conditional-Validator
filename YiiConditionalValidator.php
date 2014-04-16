@@ -22,7 +22,7 @@
  * @author Sidney Lins <solucoes@wmaior.com>
  * @author Andrey Putilov <to.merge@gmail.com>
  * @copyright Copyright &copy; 2011 Sidney Lins
- * @version 1.2.1
+ * @version 1.2.2
  * @license New BSD Licence
  */
 class YiiConditionalValidator extends CValidator
@@ -31,6 +31,7 @@ class YiiConditionalValidator extends CValidator
     public $then = array();
 
     public $clientDynamicIfValue = true;
+    public $ifJs = '';
 
     /**
      * @param CModel $object
@@ -115,31 +116,35 @@ class YiiConditionalValidator extends CValidator
     public function clientValidateAttribute($object, $attribute)
     {
         $ifValidators = $this->createValidators($object, $this->if);
-        $ifJs = [];
 
-        foreach ($ifValidators as $validator) {
-            foreach ($validator->attributes as $ifAttribute) {
-                $js = $validator->clientValidateAttribute($object, $ifAttribute);
+        if (empty($this->ifJs)) {
+            $ifJs = [];
+            foreach ($ifValidators as $validator) {
+                foreach ($validator->attributes as $ifAttribute) {
+                    $js = $validator->clientValidateAttribute($object, $ifAttribute);
 
-                if (!preg_match('/if\s*?\((.+)\)\s*?\{/s', $js, $matches)) {
-                    throw new CException(
-                        'Error in YiiConditionalValidator: can\'t extract js condition for "if" validator'
-                    );
+                    if (!preg_match('/if\s*?\((.+)\)\s*?\{/s', $js, $matches)) {
+                        throw new CException(
+                            'Error in YiiConditionalValidator: can\'t extract js condition for "if" validator'
+                        );
+                    }
+                    $if = $matches[1];
+                    if ($this->clientDynamicIfValue) {
+                        $if = preg_replace(
+                            '/\bvalue\b/',
+                            'jQuery("#' . CHtml::activeId($object, $ifAttribute) . '").val()',
+                            $if
+                        );
+                    } else {
+                        $if = preg_replace('/\bvalue\b/', json_encode((string)$object->$ifAttribute), $if);
+                    }
+                    $ifJs [] = "!($if)";
                 }
-                $if = $matches[1];
-                if ($this->clientDynamicIfValue) {
-                    $if = preg_replace(
-                        '/\bvalue\b/',
-                        'jQuery("#' . CHtml::activeId($object, $ifAttribute) . '").val()',
-                        $if
-                    );
-                } else {
-                    $if = preg_replace('/\bvalue\b/', json_encode((string)$object->$ifAttribute), $if);
-                }
-                $ifJs []= "!($if)";
             }
+            $ifJs = implode(' && ', $ifJs);
+        } else {
+            $ifJs = $this->ifJs;
         }
-        $ifJs = implode(' && ', $ifJs);
 
         $thenValidators = $this->createValidators($object, $this->then);
         $thenJs = '';
