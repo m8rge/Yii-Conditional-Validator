@@ -86,31 +86,24 @@ class YiiConditionalValidator extends CValidator
      */
     public function createValidators($model, $rules)
     {
-        static $existingValidators = array();
-
-        $cacheKey = md5(serialize($rules) . serialize($model));
-        if (empty($existingValidators[$cacheKey])) {
-            $validators = array();
-            foreach ($rules as $rule) {
-                if (isset($rule[0], $rule[1])) // attributes, validator name
-                {
-                    $validators[] = self::createValidator($rule[1], $model, $rule[0], array_slice($rule, 2));
-                } else {
-                    /** @noinspection PhpUndefinedClassInspection */
-                    throw new CException(
-                        Yii::t(
-                            'yii',
-                            '{class} has an invalid validation rule. The rule must specify attributes to be validated and the validator name.',
-                            array('{class}' => get_class($model))
-                        )
-                    );
-                }
+        $validators = array();
+        foreach ($rules as $rule) {
+            if (isset($rule[0], $rule[1])) // attributes, validator name
+            {
+                $validators[] = self::createValidator($rule[1], $model, $rule[0], array_slice($rule, 2));
+            } else {
+                /** @noinspection PhpUndefinedClassInspection */
+                throw new CException(
+                    Yii::t(
+                        'yii',
+                        '{class} has an invalid validation rule. The rule must specify attributes to be validated and the validator name.',
+                        array('{class}' => get_class($model))
+                    )
+                );
             }
-
-            $existingValidators[$cacheKey] = $validators;
         }
 
-        return $existingValidators[$cacheKey];
+        return $validators;
     }
 
     public function clientValidateAttribute($object, $attribute)
