@@ -118,7 +118,7 @@ class YiiConditionalValidator extends CValidator
         $ifValidators = $this->createValidators($object, $this->if);
 
         if (empty($this->ifJs)) {
-            $ifJs = [];
+            $ifJs = array();
             foreach ($ifValidators as $validator) {
                 foreach ($validator->attributes as $ifAttribute) {
                     $js = $validator->clientValidateAttribute($object, $ifAttribute);
@@ -152,7 +152,7 @@ class YiiConditionalValidator extends CValidator
         foreach ($thenValidators as $validator) {
             foreach ($validator->attributes as $thenAttribute) {
                 if ($thenAttribute == $attribute) {
-                    $thenJs = $validator->clientValidateAttribute($object, $thenAttribute);
+                    $thenJs .= $validator->clientValidateAttribute($object, $thenAttribute);
                     break;
                 }
             }
